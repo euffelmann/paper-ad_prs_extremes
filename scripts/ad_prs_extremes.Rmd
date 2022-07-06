@@ -2,7 +2,7 @@
 title: "GWAS of polygenic risk extremes for Alzheimer's disease suffers from high false positive rate"
 author: "Emil Uffelmann"
 date: "31/05/2022"
-output: html_document
+output: github_document
 ---
 
 ```{r setup, include=FALSE}
@@ -136,7 +136,7 @@ gt_tbl <- fpr_prs_0.05_sig_gws_table %>%
     use_seps = FALSE,
     drop_trailing_zeros = T
   ) #%>%
-  #gtsave(filename = "random/ad_prs_extremes/tables/prs_threshold0.05_fpr_threshold5e-08.html", inline_css = TRUE)
+  #gtsave(filename = "/tables/prs_threshold0.05_fpr_threshold5e-08.html", inline_css = TRUE)
 
 gt_tbl
 

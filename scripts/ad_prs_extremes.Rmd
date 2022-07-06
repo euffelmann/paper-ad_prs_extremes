@@ -18,14 +18,6 @@ suppressPackageStartupMessages(library(svMisc))
 
 ------------------------
 
-## 'Genome-wide association of polygenic risk extremes for Alzheimer's disease in the UK Biobank' suffers from high false positive rate
-
-Here we show that defining a phenotype based on the extremes of a PRS-distribution, and then running a GWAS on this newly-defined phenotype leads to strongly inflated false positive rates. This is because one effectively regresses the dependent variable on itself. In other words, SNPs used to predict the dependent variable were used to define it. 
-
-* Original paper: https://www.nature.com/articles/s41598-022-12391-2
-
-------------------------
-
 ```{r set-up}
 rm(list = ls())
 library(tidyverse)
@@ -108,7 +100,7 @@ gt_tbl <- fpr_prs_0.05_sig_gws_table %>%
     rows = 4:6
   ) %>%
   tab_row_group(
-    label = "sqrt(100)%",
+    label = "100%",
     rows = 7:9
   )  %>%
   cols_label(
@@ -138,7 +130,7 @@ gt_tbl <- fpr_prs_0.05_sig_gws_table %>%
   ) #%>%
   #gtsave(filename = "/tables/prs_threshold0.05_fpr_threshold5e-08.html", inline_css = TRUE)
 
-gt_tbl
+as_raw_html(gt_tbl)
 
 ```
 

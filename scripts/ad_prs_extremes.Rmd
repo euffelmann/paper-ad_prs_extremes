@@ -1,0 +1,156 @@
+---
+title: "GWAS of polygenic risk extremes for Alzheimer's disease suffers from high false positive rate"
+author: "Emil Uffelmann"
+date: "31/05/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+# theory from Dudbridge see https://github.com/DudbridgeLab/avengeme, install with "devtools::install_github("DudbridgeLab/avengeme")"
+suppressPackageStartupMessages(library(avengeme)) 
+suppressPackageStartupMessages(library(data.table))
+suppressPackageStartupMessages(library(tidyverse)) 
+suppressPackageStartupMessages(library(gt)) 
+suppressPackageStartupMessages(library(svMisc)) 
+```
+
+------------------------
+
+## 'Genome-wide association of polygenic risk extremes for Alzheimer's disease in the UK Biobank' suffers from high false positive rate
+
+Here we show that defining a phenotype based on the extremes of a PRS-distribution, and then running a GWAS on this newly-defined phenotype leads to strongly inflated false positive rates. This is because one effectively regresses the dependent variable on itself. In other words, SNPs used to predict the dependent variable were used to define it. 
+
+* Original paper: https://www.nature.com/articles/s41598-022-12391-2
+
+------------------------
+
+```{r set-up}
+rm(list = ls())
+library(tidyverse)
+library(data.table)
+
+# load data
+data_list <- list()
+files <- list.files(path = "simulation_results/", pattern = glob2rx("run_summary_*.rds"), full.names = T)
+```
+
+
+```{r load simulation results}
+prs_threshold = 0.05
+sim_results <- NULL
+
+for (i in 1:length(files)) {
+  
+  sim_results[[i]] <- readRDS(files[i])[[as.character(prs_threshold)]]
+}
+
+```
+
+```{r descriptive statistics fpr & fpn}
+
+## extract fpr and fpn data
+temp1 <- NULL
+
+for (i in 1:length(sim_results)) {
+  sim_results_i <- sim_results[[i]]
+  alz_sumstats <- sim_results_i$gwas_alz_sumstats
+  n_all_null_snps <- alz_sumstats %>% filter(str_detect(SNP, "null")) %>% nrow()
+  n_null_snps_in_prs <- alz_sumstats %>% filter(str_detect(SNP, "null") & P <= prs_threshold) %>% nrow()
+  n_null_snps_not_in_prs <- alz_sumstats %>% filter(str_detect(SNP, "null") & P > prs_threshold) %>% nrow()
+  sim_results_i[["prs_extremes_fpr"]]$snp_set_number <- rep(x = c(n_all_null_snps, n_all_null_snps, 
+                                                                  n_null_snps_in_prs, n_null_snps_in_prs, 
+                                                                  n_null_snps_not_in_prs, n_null_snps_not_in_prs))
+  sim_results_i[["prs_extremes_fpr"]]$fpn <- as.numeric(sim_results_i[["prs_extremes_fpr"]]$fpr) * sim_results_i[["prs_extremes_fpr"]]$snp_set_number
+  temp1[[i]] <- sim_results_i[["prs_extremes_fpr"]]
+}
+
+fpr_dfr <- do.call("rbind", temp1)
+fpr_dfr <- fpr_dfr %>%
+  mutate(overlap = as.numeric(overlap),
+         overlap2 = fct_reorder(paste0(overlap, "%"), overlap),
+         fpr = as.numeric(fpr), 
+         sig_threshold = as.numeric(sig_threshold),
+         snp_set_name = case_when(snp_set_name == "all_null_snps" ~ "All null-SNPs",
+                                  snp_set_name == "null_snps_in_prs" ~ "Null-SNPs used in PRS",
+                                  snp_set_name == "null_snps_not_in_prs" ~ "Null-SNPs not used in PRS"),
+         fpr = replace_na(fpr, 0))
+
+fpr_prs_0.05_sig_gws <- fpr_dfr[fpr_dfr$sig_threshold == 5e-8,]
+
+fpr_prs_0.05_sig_gws_table <- fpr_prs_0.05_sig_gws %>% 
+  group_by(overlap, snp_set_name) %>%
+  summarise(mean_fpr = mean(fpr),
+            se_fpr = sd(fpr) / sqrt(100),
+            max_fpr = max(fpr),
+            mean_fpn = mean(fpn),
+            se_fpn = sd(fpn) / sqrt(100),
+            max_fpn = max(fpn),
+            .groups = 'drop')
+
+gt_tbl <- fpr_prs_0.05_sig_gws_table %>%
+  select(!overlap) %>%
+  gt(rowname_col = "snp_set_name") %>%
+  tab_stubhead(label = "Overlap") %>%
+  tab_spanner(
+    label = "False-positive rate",
+    columns = c(mean_fpr, se_fpr, max_fpr)) %>%
+  tab_spanner(
+    label = "Number of false-positives",
+    columns = c(mean_fpn, se_fpn, max_fpn)) %>%
+  tab_row_group(
+    label = "0%",
+    rows = 1:3
+  ) %>%
+  tab_row_group(
+    label = "50%",
+    rows = 4:6
+  ) %>%
+  tab_row_group(
+    label = "sqrt(100)%",
+    rows = 7:9
+  )  %>%
+  cols_label(
+    mean_fpr = "mean",
+    se_fpr = "s.e.m.",
+    max_fpr = "max",
+    mean_fpn = "mean",
+    se_fpn = "s.e.m.",
+    max_fpn = "max"
+  ) %>%
+  tab_options(table.font.names = "charter") %>%
+  fmt_number(
+    columns = c(mean_fpr, max_fpr),
+    decimals = 7,
+    use_seps = FALSE
+  ) %>%
+  fmt_number(
+    columns = se_fpr,
+    decimals = 8,
+    use_seps = FALSE
+  ) %>%
+  fmt_number(
+    columns = c(mean_fpn, se_fpn, max_fpn),
+    decimals = 3,
+    use_seps = FALSE,
+    drop_trailing_zeros = T
+  ) #%>%
+  #gtsave(filename = "random/ad_prs_extremes/tables/prs_threshold0.05_fpr_threshold5e-08.html", inline_css = TRUE)
+
+gt_tbl
+
+```
+
+```{r model checks}
+
+gwas_alz_summary_lst <- NULL
+for (i in 1:length(sim_results)) {
+  gwas_alz_summary_lst[[i]] <- sim_results[[i]][["gwas_alz_summary"]]
+}
+gwas_alz_summary <- do.call("rbind", gwas_alz_summary_lst)
+
+summary(gwas_alz_summary)
+
+```
+

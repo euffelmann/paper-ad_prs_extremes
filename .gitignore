@@ -39,5 +39,4 @@ vignettes/*.pdf
 .Renviron
 
 # directories
-plots/
 simulation_results/

@@ -796,7 +796,7 @@ gt_tbl <- m %>%
     )
   ) %>%
   opt_align_table_header(align = "left") %>%
-gtsave(filename = "plots/table1.html", inline_css = TRUE)
+gtsave(filename = "tables/table1.html", inline_css = TRUE)
 
 
 ##### supplementary table 2: model checks #####
@@ -813,16 +813,10 @@ gwas_alz_summary <- gwas_alz_summary %>%
             ldsc_h2l = print_w(ldsc_h2l),
             lambda = print_w(lambda))
 
-gt_tbl <- gwas_alz_summary %>%
-  gt() %>%
-  cols_label(
-    prs_r2liab = expression("PRS "*italic("R")["liability"]^2)) %>%
-  gtsave(filename = "plots/table2.html", inline_css = TRUE)
-
 apa(gwas_alz_summary) %>%
   cols_label(prs_r2liab = html("PRS <i>R</i><sup>2</sup><sub>liability</sub>"),
              ldsc_intercept = "LDSC intercept",
              ldsc_h2l = html("<i>h</i><sup>2</sup><sub>liability</sub>")
   ) %>%
-  gtsave(filename = "plots/table2.html", inline_css = TRUE)
+  gtsave(filename = "tables/table2.html", inline_css = TRUE)
 

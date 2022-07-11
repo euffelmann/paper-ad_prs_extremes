@@ -1,17 +1,20 @@
 
 
-# set-up
+##### set-up data #####
+
 rm(list = ls())
 library(tidyverse)
 library(data.table)
 library(ggpubr)
+library(gt)
 
-# load data
 data_list <- list()
 alz_fpr_fpn_list <- list() # fpn = False positive number
 files <- list.files(path = "simulation_results", pattern = glob2rx("run_summary_*.rds"), full.names = T)
 
 ##### main figure 1: prs_threshold = 0.05; fpr_threshold = 5e-8 ####
+
+## false positive rate
 
 prs_threshold = 0.05; fpr_threshold = 5e-8
 
@@ -52,23 +55,31 @@ n_null_snps_not_in_prs <- fpr_dfr$snp_set_number[fpr_dfr$snp_set_name == "Null-S
 p1 <- fpr_dfr %>%
   filter(sig_threshold == fpr_threshold,
          snp_set_name == "All null-SNPs") %>%
-  ggplot(aes(x = overlap2, y = fpr)) +
-  #geom_violin() +
-  geom_boxplot(width=0.3, color="black", alpha=0.2) +
-  geom_point(color="grey", alpha=0.4, size = 0.5) + 
+  group_by(overlap2, snp_set_name) %>%
+  summarise(mean_fpr = mean(fpr),
+            se_fpr = sd(fpr) / sqrt(100),
+            max_fpr = max(fpr),
+            mean_fpn = mean(fpn),
+            se_fpn = sd(fpn) / sqrt(100),
+            max_fpn = max(fpn),
+            .groups = 'drop') %>%
+  ggplot(aes(x = overlap2, y = mean_fpr)) +
+  geom_point(size = 1, colour = "black") + 
+  geom_errorbar(aes(ymin = mean_fpr - 3.291 * se_fpr, ymax = mean_fpr + 3.291 * se_fpr), width=.3) +
   theme_classic() +
-  scale_y_continuous(sec.axis = sec_axis(~ . * n_all_null_snps, name="False positive number")) +
+  scale_y_continuous(sec.axis = sec_axis(~ . * n_all_null_snps, name="")) +
   theme(
     legend.position="none",
     strip.text.x = element_text(size = 8),
     text=element_text(family="Charter"),
     strip.background = element_rect(
       color="#EBEBEB", fill="#EBEBEB", size=1.5, linetype="solid"),
-    plot.title = element_text(hjust = 0.5, size = 10)
+    plot.title = element_text(hjust = 0.5, size = 10),
+    axis.title=element_text(size=10)
   ) +
   xlab("Sample overlap") +
-  ylab("False positive rate") +
-  ggtitle("All null-SNPs") +
+  ylab("False positive rate per SNP ") +
+  ggtitle("") +
   geom_hline(yintercept=5e-8, linetype="dashed", 
              color = "red", size=0.5) +
   geom_text(aes(1, 5e-8, label = 5e-8, colour = "red"),
@@ -77,34 +88,50 @@ p1 <- fpr_dfr %>%
 p2 <- fpr_dfr %>%
   filter(sig_threshold == fpr_threshold,
          snp_set_name == "Null-SNPs used in PRS") %>%
-  ggplot(aes(x = overlap2, y = fpr)) +
-  #geom_violin() +
-  geom_boxplot(width=0.3, color="black", alpha=0.2) +
-  geom_point(color="grey", alpha=0.4, size = 0.5) +
-  scale_y_continuous(sec.axis = sec_axis(~ . * n_null_snps_in_prs, name="")) +
+  group_by(overlap2, snp_set_name) %>%
+  summarise(mean_fpr = mean(fpr),
+            se_fpr = sd(fpr) / sqrt(100),
+            max_fpr = max(fpr),
+            mean_fpn = mean(fpn),
+            se_fpn = sd(fpn) / sqrt(100),
+            max_fpn = max(fpn),
+            .groups = 'drop') %>%
+  ggplot(aes(x = overlap2, y = mean_fpr)) +
+  geom_point(size = 1, colour = "black") + 
+  geom_errorbar(aes(ymin = mean_fpr - 3.291 * se_fpr, ymax = mean_fpr + 3.291 * se_fpr), width=.3) +
   theme_classic() +
+  scale_y_continuous(sec.axis = sec_axis(~ . * n_null_snps_in_prs, name="")) +
   theme(
     legend.position="none",
     strip.text.x = element_text(size = 8),
     text=element_text(family="Charter"),
     strip.background = element_rect(
       color="#EBEBEB", fill="#EBEBEB", size=1.5, linetype="solid"),
-    plot.title = element_text(hjust = 0.5, size = 10)
+    plot.title = element_text(hjust = 0.5, size = 10),
+    axis.title=element_text(size=10)
   ) +
-  xlab("") +
+  xlab("Sample overlap") +
   ylab("") +
-  ggtitle("Null-SNPs used in PRS") +
-  geom_hline(yintercept=fpr_threshold, linetype="dashed", 
+  ggtitle("") +
+  geom_hline(yintercept=5e-8, linetype="dashed", 
              color = "red", size=0.5)
 
 p3 <- fpr_dfr %>%
   filter(sig_threshold == fpr_threshold,
          snp_set_name == "Null-SNPs not used in PRS") %>%
-  ggplot(aes(x = overlap2, y = fpr)) +
-  #  geom_violin() +
-  geom_boxplot(width=0.3, color="black", alpha=0.2) +
-  geom_point(color="grey", alpha=0.4, size = 0.5) +
-  scale_y_continuous(sec.axis = sec_axis(~ . * n_null_snps_not_in_prs, name="False positive number", breaks=c(0, 1))) +
+  group_by(overlap2, snp_set_name) %>%
+  summarise(mean_fpr = mean(fpr),
+            se_fpr = sd(fpr) / sqrt(100),
+            max_fpr = max(fpr),
+            mean_fpn = mean(fpn),
+            se_fpn = sd(fpn) / sqrt(100),
+            max_fpn = max(fpn),
+            .groups = 'drop') %>%
+  ggplot(aes(x = overlap2, y = mean_fpr)) +
+  geom_point(size = 1, colour = "black") + 
+  geom_errorbar(aes(ymin = 0, ymax = mean_fpr + 3.291 * se_fpr), width=.3) +
+  scale_y_continuous(sec.axis = sec_axis(~ . * n_null_snps_not_in_prs, name="False positives per study", breaks = c(0, 1)),
+                     limits = c(0, 6.2e-6)) +
   theme_classic() +
   theme(
     legend.position="none",
@@ -112,23 +139,39 @@ p3 <- fpr_dfr %>%
     text=element_text(family="Charter"),
     strip.background = element_rect(
       color="#EBEBEB", fill="#EBEBEB", size=1.5, linetype="solid"),
-    plot.title = element_text(hjust = 0.5, size = 10)
+    plot.title = element_text(hjust = 0.5, size = 10),
+    axis.title=element_text(size=10)
   ) +
   xlab("Sample overlap") +
-  ylab("False positive rate") +
-  ggtitle("Null-SNPs not used in PRS") +
-  geom_hline(yintercept=fpr_threshold, linetype="dashed", 
+  ylab("") +
+  ggtitle("") +
+  geom_hline(yintercept=5e-8, linetype="dashed", 
              color = "red", size=0.5)
 
-alz_fpr_fpn_dfr <- as.data.frame(do.call("rbind", alz_fpr_fpn_list))
-names(alz_fpr_fpn_dfr) <- c("fpr", "fpn")
-p4 <- alz_fpr_fpn_dfr %>%
-  ggplot(aes(y = fpr)) +
-  #geom_violin(aes(x = 0)) +
-  geom_boxplot(width=0.3, color="black", alpha=0.2) +
-  scale_x_discrete() +
-  geom_point(aes(x = 0), color="grey", alpha = 1, size = 1) +
-  scale_y_continuous(sec.axis = sec_axis(~ . * n_all_null_snps, name="", breaks=c(0, 1))) +
+## variance of z-scores
+
+for (i in 1:length(files)) {
+  
+  run_summary <- readRDS(files[i])[[as.character(prs_threshold)]]
+  data_list[[i]] <- run_summary[["prs_extremes_z_stat"]]
+  
+}
+
+z_var_dfr <- do.call("rbind", data_list)
+
+p4 <- z_var_dfr %>%
+  filter(snp_set_name == "all_null_snps") %>%
+  mutate(z_stat_var = as.numeric(z_stat_var),
+         overlap = as.numeric(overlap),
+         overlap2 = fct_reorder(paste0(overlap, "%"), overlap)) %>%
+  group_by(overlap2) %>%
+  summarise(mean_z_stat_var = mean(z_stat_var),
+            se_z_stat_var = sd(z_stat_var) / sqrt(100),
+            max_z_stat_var = max(z_stat_var),
+            .groups = 'drop') %>%
+  ggplot(aes(x = overlap2, y = mean_z_stat_var)) +
+  geom_point(size = 1, colour = "black") + 
+  geom_errorbar(aes(ymin = mean_z_stat_var - 3.291 * se_z_stat_var, ymax = mean_z_stat_var + 3.291 * se_z_stat_var), width=.3) +
   theme_classic() +
   theme(
     legend.position="none",
@@ -136,20 +179,81 @@ p4 <- alz_fpr_fpn_dfr %>%
     text=element_text(family="Charter"),
     strip.background = element_rect(
       color="#EBEBEB", fill="#EBEBEB", size=1.5, linetype="solid"),
-    plot.title = element_text(hjust = 0.5, size = 10)
+    plot.title = element_text(hjust = 0.5, size = 10),
+    axis.title=element_text(size=10)
+  ) +
+  xlab("") +
+  ylab("Variance of Z-statistics") +
+  ggtitle("All null-SNPs") +
+  geom_hline(yintercept=1, linetype="dashed", 
+             color = "red", size=0.5)
+
+p5 <- z_var_dfr %>%
+  filter(snp_set_name == "null_snps_in_prs") %>%
+  mutate(z_stat_var = as.numeric(z_stat_var),
+         overlap = as.numeric(overlap),
+         overlap2 = fct_reorder(paste0(overlap, "%"), overlap)) %>%
+  group_by(overlap2) %>%
+  summarise(mean_z_stat_var = mean(z_stat_var),
+            se_z_stat_var = sd(z_stat_var) / sqrt(100),
+            max_z_stat_var = max(z_stat_var),
+            .groups = 'drop') %>%
+  ggplot(aes(x = overlap2, y = mean_z_stat_var)) +
+  geom_point(size = 1, colour = "black") + 
+  geom_errorbar(aes(ymin = mean_z_stat_var - 3.291 * se_z_stat_var, ymax = mean_z_stat_var + 3.291 * se_z_stat_var), width=.3) +
+  theme_classic() +
+  theme(
+    legend.position="none",
+    strip.text.x = element_text(size = 8),
+    text=element_text(family="Charter"),
+    strip.background = element_rect(
+      color="#EBEBEB", fill="#EBEBEB", size=1.5, linetype="solid"),
+    plot.title = element_text(hjust = 0.5, size = 10),
+    axis.title=element_text(size=10)
   ) +
   xlab("") +
   ylab("") +
-  ggtitle("GWAS of AD") +
-  geom_hline(yintercept=fpr_threshold, linetype="dashed", 
+  ggtitle("Null-SNPs used in PRS") +
+  geom_hline(yintercept=1, linetype="dashed", 
              color = "red", size=0.5)
 
-figure <- ggarrange(p1, p2, p3, p4,
-                    labels = c("A", "B", "C", "D"),
-                    ncol = 2, nrow = 2, font.label = list(size = 10, family="Charter"), hjust = c(-0.5, -3.5))
+p6 <- z_var_dfr %>%
+  filter(snp_set_name == "null_snps_not_in_prs") %>%
+  mutate(z_stat_var = as.numeric(z_stat_var),
+         overlap = as.numeric(overlap),
+         overlap2 = fct_reorder(paste0(overlap, "%"), overlap)) %>%
+  group_by(overlap2) %>%
+  summarise(mean_z_stat_var = mean(z_stat_var),
+            se_z_stat_var = sd(z_stat_var) / sqrt(100),
+            max_z_stat_var = max(z_stat_var),
+            .groups = 'drop') %>%
+  ggplot(aes(x = overlap2, y = mean_z_stat_var)) +
+  geom_point(size = 1, colour = "black") + 
+  geom_errorbar(aes(ymin = mean_z_stat_var - 3.291 * se_z_stat_var, ymax = mean_z_stat_var + 3.291 * se_z_stat_var), width=.3) +
+  theme_classic() +
+  theme(
+    legend.position="none",
+    strip.text.x = element_text(size = 8),
+    text=element_text(family="Charter"),
+    strip.background = element_rect(
+      color="#EBEBEB", fill="#EBEBEB", size=1.5, linetype="solid"),
+    plot.title = element_text(hjust = 0.5, size = 10),
+    axis.title=element_text(size=10)
+  ) +
+  xlab("") +
+  ylab("") +
+  ggtitle("Null-SNPs not used in PRS") +
+  geom_hline(yintercept=1, linetype="dashed", 
+             color = "red", size=0.5)
 
-ggsave(plot = figure, filename = paste0("plots/prs_threshold", prs_threshold, "_fpr_threshold", fpr_threshold, ".png"),
-       width = 15, height = 15, units = "cm", dpi = 500, bg = "white")
+
+figure <- ggarrange(p4, p5, p6, p1, p2, p3, 
+                    labels = c("A", "B", "C", "D", "E", "F"),
+                    ncol = 3, nrow = 2, font.label = list(size = 10, family="Charter"),
+                    align = "v")
+
+ggsave(plot = figure, filename = paste0("plots/z_stat_fpr_fpn_prs_threshold", prs_threshold, "_fpr_threshold", fpr_threshold, ".png"),
+       width = 20, height = 12, units = "cm", dpi = 500, bg = "white")
 
 
 ##### suppl figure 1: prs_threshold = 0.05; fpr_threshold = 0.05 ####
@@ -192,233 +296,110 @@ n_null_snps_not_in_prs <- fpr_dfr$snp_set_number[fpr_dfr$snp_set_name == "Null-S
 p1 <- fpr_dfr %>%
   filter(sig_threshold == fpr_threshold,
          snp_set_name == "All null-SNPs") %>%
-  ggplot(aes(x = overlap2, y = fpr)) +
-  #geom_violin() +
-  geom_boxplot(width=0.3, color="black", alpha=0.2) +
-  geom_point(color="grey", alpha=0.4, size = 0.5) + 
+  group_by(overlap2, snp_set_name) %>%
+  summarise(mean_fpr = mean(fpr),
+            se_fpr = sd(fpr) / sqrt(100),
+            max_fpr = max(fpr),
+            mean_fpn = mean(fpn),
+            se_fpn = sd(fpn) / sqrt(100),
+            max_fpn = max(fpn),
+            .groups = 'drop') %>%
+  ggplot(aes(x = overlap2, y = mean_fpr)) +
+  geom_point(size = 1, colour = "black") + 
+  geom_errorbar(aes(ymin = mean_fpr - 3.291 * se_fpr, ymax = mean_fpr + 3.291 * se_fpr), width=.3) +
   theme_classic() +
-  scale_y_continuous(sec.axis = sec_axis(~ . * n_all_null_snps, name="False positive number")) +
+  scale_y_continuous(sec.axis = sec_axis(~ . * n_all_null_snps, name="")) +
   theme(
     legend.position="none",
     strip.text.x = element_text(size = 8),
     text=element_text(family="Charter"),
     strip.background = element_rect(
       color="#EBEBEB", fill="#EBEBEB", size=1.5, linetype="solid"),
-    plot.title = element_text(hjust = 0.5, size = 10)
+    plot.title = element_text(hjust = 0.5, size = 10),
+    axis.title=element_text(size=10)
   ) +
   xlab("Sample overlap") +
-  ylab("False positive rate") +
+  ylab("False positive rate per SNP ") +
   ggtitle("All null-SNPs") +
-  geom_hline(yintercept = fpr_threshold, linetype="dashed", 
+  geom_hline(yintercept=0.05, linetype="dashed", 
              color = "red", size=0.5)
 
 p2 <- fpr_dfr %>%
   filter(sig_threshold == fpr_threshold,
          snp_set_name == "Null-SNPs used in PRS") %>%
-  ggplot(aes(x = overlap2, y = fpr)) +
-  #geom_violin() +
-  geom_boxplot(width=0.3, color="black", alpha=0.2) +
-  geom_point(color="grey", alpha=0.4, size = 0.5) +
-  scale_y_continuous(sec.axis = sec_axis(~ . * n_null_snps_in_prs, name="")) +
+  group_by(overlap2, snp_set_name) %>%
+  summarise(mean_fpr = mean(fpr),
+            se_fpr = sd(fpr) / sqrt(100),
+            max_fpr = max(fpr),
+            mean_fpn = mean(fpn),
+            se_fpn = sd(fpn) / sqrt(100),
+            max_fpn = max(fpn),
+            .groups = 'drop') %>%
+  ggplot(aes(x = overlap2, y = mean_fpr)) +
+  geom_point(size = 1, colour = "black") + 
+  geom_errorbar(aes(ymin = mean_fpr - 3.291 * se_fpr, ymax = mean_fpr + 3.291 * se_fpr), width=.3) +
   theme_classic() +
+  scale_y_continuous(sec.axis = sec_axis(~ . * n_null_snps_in_prs, name=""),
+                     breaks = c(0.05, 0.25, 0.5, 0.75, 1)) +
   theme(
     legend.position="none",
     strip.text.x = element_text(size = 8),
     text=element_text(family="Charter"),
     strip.background = element_rect(
       color="#EBEBEB", fill="#EBEBEB", size=1.5, linetype="solid"),
-    plot.title = element_text(hjust = 0.5, size = 10)
+    plot.title = element_text(hjust = 0.5, size = 10),
+    axis.title=element_text(size=10)
   ) +
-  xlab("") +
+  xlab("Sample overlap") +
   ylab("") +
   ggtitle("Null-SNPs used in PRS") +
-  geom_hline(yintercept = fpr_threshold, linetype="dashed", 
-             color = "red", size = 0.5)
+  geom_hline(yintercept=0.05, linetype="dashed", 
+             color = "red", size=0.5)
 
 p3 <- fpr_dfr %>%
   filter(sig_threshold == fpr_threshold,
          snp_set_name == "Null-SNPs not used in PRS") %>%
-  ggplot(aes(x = overlap2, y = fpr)) +
-  #  geom_violin() +
-  geom_boxplot(width=0.3, color="black", alpha=0.2) +
-  geom_point(color="grey", alpha=0.4, size = 0.5) +
-  scale_y_continuous(sec.axis = sec_axis(~ . * n_null_snps_not_in_prs, name="False positive number")) +
+  group_by(overlap2, snp_set_name) %>%
+  summarise(mean_fpr = mean(fpr),
+            se_fpr = sd(fpr) / sqrt(100),
+            max_fpr = max(fpr),
+            mean_fpn = mean(fpn),
+            se_fpn = sd(fpn) / sqrt(100),
+            max_fpn = max(fpn),
+            .groups = 'drop') %>%
+  ggplot(aes(x = overlap2, y = mean_fpr)) +
+  geom_point(size = 1, colour = "black") + 
+  geom_errorbar(aes(ymin = mean_fpr - 3.291 * se_fpr, ymax = mean_fpr + 3.291 * se_fpr), width=.3) +
   theme_classic() +
+  scale_y_continuous(sec.axis = sec_axis(~ . * n_null_snps_not_in_prs, name="False positives per study")) +
   theme(
     legend.position="none",
     strip.text.x = element_text(size = 8),
     text=element_text(family="Charter"),
     strip.background = element_rect(
       color="#EBEBEB", fill="#EBEBEB", size=1.5, linetype="solid"),
-    plot.title = element_text(hjust = 0.5, size = 10)
+    plot.title = element_text(hjust = 0.5, size = 10),
+    axis.title=element_text(size=10)
   ) +
   xlab("Sample overlap") +
-  ylab("False positive rate") +
-  ggtitle("Null-SNPs not used in PRS") +
-  geom_hline(yintercept = fpr_threshold, linetype = "dashed", 
-             color = "red", size = 0.5)
-
-alz_fpr_fpn_dfr <- as.data.frame(do.call("rbind", alz_fpr_fpn_list))
-names(alz_fpr_fpn_dfr) <- c("fpr", "fpn")
-p4 <- alz_fpr_fpn_dfr %>%
-  ggplot(aes(y = fpr)) +
-  #geom_violin(aes(x = 0)) +
-  geom_boxplot(width = 0.3, color="black", alpha=0.2) +
-  scale_x_discrete() +
-  geom_point(aes(x = 0), color="grey", alpha = 1, size = 1) +
-  scale_y_continuous(sec.axis = sec_axis(~ . * n_all_null_snps, name="")) +
-  theme_classic() +
-  theme(
-    legend.position="none",
-    strip.text.x = element_text(size = 8),
-    text=element_text(family="Charter"),
-    strip.background = element_rect(
-      color="#EBEBEB", fill="#EBEBEB", size=1.5, linetype="solid"),
-    plot.title = element_text(hjust = 0.5, size = 10)
-  ) +
-  xlab("") +
   ylab("") +
-  ggtitle("GWAS of ALZ") +
-  geom_hline(yintercept=fpr_threshold, linetype="dashed", 
+  ggtitle("Null-SNPs not used in PRS") +
+  geom_hline(yintercept=0.05, linetype="dashed", 
              color = "red", size=0.5)
 
-figure <- ggarrange(p1, p2, p3, p4,
-                    labels = c("A", "B", "C", "D"),
-                    ncol = 2, nrow = 2, font.label = list(size = 10, family="Charter"), hjust = c(-0.5, -3.5))
+
+figure <- ggarrange(p1, p2, p3,
+                    labels = c("A", "B", "C"),
+                    ncol = 3, nrow = 1, font.label = list(size = 10, family="Charter"), hjust = c(-0.5, -3.5))
 
 ggsave(plot = figure, filename = paste0("plots/prs_threshold", prs_threshold, "_fpr_threshold", fpr_threshold, ".png"),
-       width = 15, height = 15, units = "cm", dpi = 500, bg = "white")
+       width = 20, height = 7, units = "cm", dpi = 500, bg = "white")
 
 
+##### suppl figure 2: prs_threshold = 1 or 5e-8 #####
 
-
-
-##### suppl figure 2: prs_threshold = 1; fpr_threshold = 5e-8 ####
-
-prs_threshold = 1; fpr_threshold = 5e-8
-
-for (i in 1:length(files)) {
-  
-  run_summary <- readRDS(files[i])[[as.character(prs_threshold)]]
-  n_all_null_snps <- alz_sumstats %>% filter(str_detect(SNP, "null")) %>% nrow()
-  n_null_snps_in_prs <- alz_sumstats %>% filter(str_detect(SNP, "null") & P <= prs_threshold) %>% nrow()
-  n_null_snps_not_in_prs <- alz_sumstats %>% filter(str_detect(SNP, "null") & P > prs_threshold) %>% nrow()
-  run_summary[["prs_extremes_fpr"]]$snp_set_number <- rep(x = c(n_all_null_snps, n_all_null_snps, 
-                                                                n_null_snps_in_prs, n_null_snps_in_prs, 
-                                                                n_null_snps_not_in_prs, n_null_snps_not_in_prs))
-  run_summary[["prs_extremes_fpr"]]$fpn <- as.numeric(run_summary[["prs_extremes_fpr"]]$fpr) * run_summary[["prs_extremes_fpr"]]$snp_set_number
-  data_list[[i]] <- run_summary[["prs_extremes_fpr"]]
-  
-}
-
-fpr_dfr <- do.call("rbind", data_list)
-fpr_dfr <- fpr_dfr %>%
-  mutate(overlap = as.numeric(overlap),
-         overlap2 = fct_reorder(paste0(overlap, "%"), overlap),
-         fpr = as.numeric(fpr), 
-         sig_threshold = as.numeric(sig_threshold),
-         snp_set_name = case_when(snp_set_name == "all_null_snps" ~ "All null-SNPs",
-                                  snp_set_name == "null_snps_in_prs" ~ "Null-SNPs used in PRS",
-                                  snp_set_name == "null_snps_not_in_prs" ~ "Null-SNPs not used in PRS"))
-fpr_dfr$fpr[is.na(fpr_dfr$fpr)] <- 0
-
-n_all_null_snps <- fpr_dfr$snp_set_number[fpr_dfr$snp_set_name == "All null-SNPs"][1]
-n_null_snps_in_prs <- fpr_dfr$snp_set_number[fpr_dfr$snp_set_name == "Null-SNPs used in PRS"][1]
-n_null_snps_not_in_prs <- fpr_dfr$snp_set_number[fpr_dfr$snp_set_name == "Null-SNPs not used in PRS"][1]
-
-p1 <- fpr_dfr %>%
-  filter(sig_threshold == fpr_threshold,
-         snp_set_name == "All null-SNPs") %>%
-  ggplot(aes(x = overlap2, y = fpr)) +
-  #geom_violin() +
-  geom_boxplot(width=0.3, color="black", alpha=0.2) +
-  geom_point(color="grey", alpha=0.4, size = 0.5) + 
-  theme_classic() +
-  scale_y_continuous(sec.axis = sec_axis(~ . * n_all_null_snps, name="False positive number")) +
-  theme(
-    legend.position="none",
-    strip.text.x = element_text(size = 8),
-    text=element_text(family="Charter"),
-    strip.background = element_rect(
-      color="#EBEBEB", fill="#EBEBEB", size=1.5, linetype="solid"),
-    plot.title = element_text(hjust = 0.5, size = 10)
-  ) +
-  xlab("Sample overlap") +
-  ylab("False positive rate") +
-  ggtitle(expression("P-value threshold "<=" 1")) +
-  geom_hline(yintercept = fpr_threshold, linetype="dashed", 
-             color = "red", size=0.5) +
-  geom_text(aes(0, 5e-8, label = 5e-8, vjust = -0.5, hjust = -0.2, colour = "red"),
-            size = 3)
-
-prs_threshold = 5e-8; fpr_threshold = 5e-8
-
-for (i in 1:length(files)) {
-  
-  run_summary <- readRDS(files[i])[[as.character(prs_threshold)]]
-  n_all_null_snps <- alz_sumstats %>% filter(str_detect(SNP, "null")) %>% nrow()
-  n_null_snps_in_prs <- alz_sumstats %>% filter(str_detect(SNP, "null") & P <= prs_threshold) %>% nrow()
-  n_null_snps_not_in_prs <- alz_sumstats %>% filter(str_detect(SNP, "null") & P > prs_threshold) %>% nrow()
-  run_summary[["prs_extremes_fpr"]]$snp_set_number <- rep(x = c(n_all_null_snps, n_all_null_snps, 
-                                                                n_null_snps_in_prs, n_null_snps_in_prs, 
-                                                                n_null_snps_not_in_prs, n_null_snps_not_in_prs))
-  run_summary[["prs_extremes_fpr"]]$fpn <- as.numeric(run_summary[["prs_extremes_fpr"]]$fpr) * run_summary[["prs_extremes_fpr"]]$snp_set_number
-  data_list[[i]] <- run_summary[["prs_extremes_fpr"]]
-  
-}
-
-fpr_dfr <- do.call("rbind", data_list)
-fpr_dfr <- fpr_dfr %>%
-  mutate(overlap = as.numeric(overlap),
-         overlap2 = fct_reorder(paste0(overlap, "%"), overlap),
-         fpr = as.numeric(fpr), 
-         sig_threshold = as.numeric(sig_threshold),
-         snp_set_name = case_when(snp_set_name == "all_null_snps" ~ "All null-SNPs",
-                                  snp_set_name == "null_snps_in_prs" ~ "Null-SNPs used in PRS",
-                                  snp_set_name == "null_snps_not_in_prs" ~ "Null-SNPs not used in PRS"))
-fpr_dfr$fpr[is.na(fpr_dfr$fpr)] <- 0
-
-n_all_null_snps <- max(fpr_dfr$snp_set_number[fpr_dfr$snp_set_name == "All null-SNPs"])
-n_null_snps_in_prs <- max(fpr_dfr$snp_set_number[fpr_dfr$snp_set_name == "Null-SNPs used in PRS"])
-n_null_snps_not_in_prs <- max(fpr_dfr$snp_set_number[fpr_dfr$snp_set_name == "Null-SNPs not used in PRS"])
-
-p2 <- fpr_dfr %>%
-  filter(sig_threshold == fpr_threshold,
-         snp_set_name == "All null-SNPs") %>%
-  ggplot(aes(x = overlap2, y = fpr)) +
-  #geom_violin() +
-  geom_boxplot(width=0.3, color="black", alpha=0.2) +
-  geom_point(color="grey", alpha=0.4, size = 0.5) + 
-  theme_classic() +
-  scale_y_continuous(sec.axis = sec_axis(~ . * n_all_null_snps, name="False positive number", breaks = c(0, 1))) +
-  theme(
-    legend.position="none",
-    strip.text.x = element_text(size = 8),
-    text=element_text(family="Charter"),
-    strip.background = element_rect(
-      color="#EBEBEB", fill="#EBEBEB", size=1.5, linetype="solid"),
-    plot.title = element_text(hjust = 0.5, size = 10)
-  ) +
-  xlab("Sample overlap") +
-  ylab("False positive rate") +
-  ggtitle(expression("P-value threshold "<=" 5e-8")) +
-  geom_hline(yintercept=5e-8, linetype="dashed", 
-             color = "red", size=0.5) +
-  geom_text(aes(0, 5e-8, label = 5e-8, vjust = -0.5, hjust = -0.2, colour = "red"),
-            size = 3)
-
-figure <- ggarrange(p1, p2,
-                    labels = c("A", "B"),
-                    ncol = 2, font.label = list(size = 10, family="Charter"), hjust = c(-0.5, -3.5))
-
-ggsave(plot = figure, filename = paste0("plots/prs_threshold", prs_threshold, "_and1_fpr_threshold", fpr_threshold, ".png"),
-       width = 17, height = 10, units = "cm", dpi = 500, bg = "white")
-
-
-
-##### suppl figure 3: variance of Z-scores #####
-
-prs_threshold = 0.05
+## variance of Z-statistics 
+prs_threshold <- 1
 
 for (i in 1:length(files)) {
   
@@ -427,30 +408,421 @@ for (i in 1:length(files)) {
   
 }
 
-z_var_dfr <- do.call("rbind", data_list)
-z_var_dfr <- z_var_dfr %>%
-  mutate()
+z_var_dfr_prs1 <- do.call("rbind", data_list)
 
-p1 <- z_var_dfr %>%
+p1 <- z_var_dfr_prs1 %>%
+  filter(snp_set_name == "all_null_snps") %>%
   mutate(z_stat_var = as.numeric(z_stat_var),
          overlap = as.numeric(overlap),
-         overlap2 = fct_reorder(paste0(overlap, "%"), overlap),
-         snp_set_name = case_when(snp_set_name == "all_null_snps" ~ "All null-SNPs",
-                                  snp_set_name == "null_snps_in_prs" ~ "Null-SNPs used in PRS",
-                                  snp_set_name == "null_snps_not_in_prs" ~ "Null-SNPs not used in PRS")) %>%
-  ggplot(aes(x = overlap2, y = z_stat_var)) +
-  #geom_violin() +
-  geom_boxplot(width=0.5, color="black", alpha=0.2) +
-  geom_point(color="grey", alpha=0.4, size = 0.5) + 
-  facet_wrap( ~ snp_set_name, scales = "free") +
+         overlap2 = fct_reorder(paste0(overlap, "%"), overlap)) %>%
+  group_by(overlap2) %>%
+  summarise(mean_z_stat_var = mean(z_stat_var),
+            se_z_stat_var = sd(z_stat_var) / sqrt(100),
+            max_z_stat_var = max(z_stat_var),
+            .groups = 'drop') %>%
+  ggplot(aes(x = overlap2, y = mean_z_stat_var)) +
+  geom_point(size = 1, colour = "black") + 
+  geom_errorbar(aes(ymin = mean_z_stat_var - 3.291 * se_z_stat_var, ymax = mean_z_stat_var + 3.291 * se_z_stat_var), width=.3) +
   theme_classic() +
   theme(
+    legend.position="none",
     strip.text.x = element_text(size = 8),
-    text=element_text(family="Charter")) +
-  xlab("Sample overlap") +
-  ylab("Var(Z)") +
+    text=element_text(family="Charter"),
+    strip.background = element_rect(
+      color="#EBEBEB", fill="#EBEBEB", size=1.5, linetype="solid"),
+    plot.title = element_text(hjust = 0.5, size = 10),
+    axis.title=element_text(size=10)
+  ) +
+  xlab("") +
+  ylab("Variance of Z-statistics") +
+  ggtitle("P-value threshold: 1") +
   geom_hline(yintercept=1, linetype="dashed", 
              color = "red", size=0.5)
 
-ggsave(plot = p1, filename = paste0("plots/z_stat_var.png"),
-       width = 15, height = 10, units = "cm", dpi = 500, bg = "white")
+prs_threshold <- 5e-8
+
+for (i in 1:length(files)) {
+  
+  run_summary <- readRDS(files[i])[[as.character(prs_threshold)]]
+  data_list[[i]] <- run_summary[["prs_extremes_z_stat"]]
+  
+}
+
+z_var_dfr_prsbonf <- do.call("rbind", data_list)
+
+p2 <- z_var_dfr_prsbonf %>%
+  filter(snp_set_name == "all_null_snps") %>%
+  mutate(z_stat_var = as.numeric(z_stat_var),
+         overlap = as.numeric(overlap),
+         overlap2 = fct_reorder(paste0(overlap, "%"), overlap)) %>%
+  group_by(overlap2) %>%
+  summarise(mean_z_stat_var = mean(z_stat_var),
+            se_z_stat_var = sd(z_stat_var) / sqrt(100),
+            max_z_stat_var = max(z_stat_var),
+            .groups = 'drop') %>%
+  ggplot(aes(x = overlap2, y = mean_z_stat_var)) +
+  geom_point(size = 1, colour = "black") + 
+  geom_errorbar(aes(ymin = mean_z_stat_var - 3.291 * se_z_stat_var, ymax = mean_z_stat_var + 3.291 * se_z_stat_var), width=.3) +
+  scale_y_continuous(limits = c(0.99, 1.01)) +
+  theme_classic() +
+  theme(
+    legend.position="none",
+    strip.text.x = element_text(size = 8),
+    text=element_text(family="Charter"),
+    strip.background = element_rect(
+      color="#EBEBEB", fill="#EBEBEB", size=1.5, linetype="solid"),
+    plot.title = element_text(hjust = 0.5, size = 10),
+    axis.title=element_text(size=10)
+  ) +
+  xlab("") +
+  ylab("") +
+  ggtitle("P-value threshold: 5e-8") +
+  geom_hline(yintercept=1, linetype="dashed", 
+             color = "red", size=0.5)
+
+## false positive rate
+prs_threshold = 1; fpr_threshold = 5e-8
+
+for (i in 1:length(files)) {
+  
+  run_summary <- readRDS(files[i])[[as.character(prs_threshold)]]
+  alz_sumstats <- run_summary$gwas_alz_sumstats
+  n_all_null_snps <- alz_sumstats %>% filter(str_detect(SNP, "null")) %>% nrow()
+  n_null_snps_in_prs <- alz_sumstats %>% filter(str_detect(SNP, "null") & P <= prs_threshold) %>% nrow()
+  n_null_snps_not_in_prs <- alz_sumstats %>% filter(str_detect(SNP, "null") & P > prs_threshold) %>% nrow()
+  run_summary[["prs_extremes_fpr"]]$snp_set_number <- rep(x = c(n_all_null_snps, n_all_null_snps, 
+                                                                n_null_snps_in_prs, n_null_snps_in_prs, 
+                                                                n_null_snps_not_in_prs, n_null_snps_not_in_prs))
+  run_summary[["prs_extremes_fpr"]]$fpn <- as.numeric(run_summary[["prs_extremes_fpr"]]$fpr) * run_summary[["prs_extremes_fpr"]]$snp_set_number
+  data_list[[i]] <- run_summary[["prs_extremes_fpr"]]
+  
+}
+
+fpr_dfr <- do.call("rbind", data_list)
+fpr_dfr_prs1 <- fpr_dfr %>%
+  mutate(overlap = as.numeric(overlap),
+         overlap2 = fct_reorder(paste0(overlap, "%"), overlap),
+         fpr = as.numeric(fpr), 
+         sig_threshold = as.numeric(sig_threshold),
+         snp_set_name = case_when(snp_set_name == "all_null_snps" ~ "All null-SNPs",
+                                  snp_set_name == "null_snps_in_prs" ~ "Null-SNPs used in PRS",
+                                  snp_set_name == "null_snps_not_in_prs" ~ "Null-SNPs not used in PRS"))
+fpr_dfr_prs1$fpr[is.na(fpr_dfr_prs1$fpr)] <- 0
+
+n_all_null_snps <- fpr_dfr_prs1$snp_set_number[fpr_dfr_prs1$snp_set_name == "All null-SNPs"][1]
+n_null_snps_in_prs <- fpr_dfr_prs1$snp_set_number[fpr_dfr_prs1$snp_set_name == "Null-SNPs used in PRS"][1]
+n_null_snps_not_in_prs <- fpr_dfr_prs1$snp_set_number[fpr_dfr_prs1$snp_set_name == "Null-SNPs not used in PRS"][1]
+
+p3 <- fpr_dfr_prs1 %>%
+  filter(sig_threshold == fpr_threshold,
+         snp_set_name == "All null-SNPs") %>%
+  group_by(overlap2, snp_set_name) %>%
+  summarise(mean_fpr = mean(fpr),
+            se_fpr = sd(fpr) / sqrt(100),
+            max_fpr = max(fpr),
+            mean_fpn = mean(fpn),
+            se_fpn = sd(fpn) / sqrt(100),
+            max_fpn = max(fpn),
+            .groups = 'drop') %>%
+  ggplot(aes(x = overlap2, y = mean_fpr)) +
+  geom_point(size = 1, colour = "black") + 
+  geom_errorbar(aes(ymin = mean_fpr - 3.291 * se_fpr, ymax = mean_fpr + 3.291 * se_fpr), width=.3) +
+  theme_classic() +
+  scale_y_continuous(sec.axis = sec_axis(~ . * n_all_null_snps, name="")) +
+  theme(
+    legend.position="none",
+    strip.text.x = element_text(size = 8),
+    text=element_text(family="Charter"),
+    strip.background = element_rect(
+      color="#EBEBEB", fill="#EBEBEB", size=1.5, linetype="solid"),
+    plot.title = element_text(hjust = 0.5, size = 10),
+    axis.title=element_text(size=10)
+  ) +
+  xlab("Sample overlap") +
+  ylab("False positive rate per SNP ") +
+  ggtitle("") +
+  geom_hline(yintercept=5e-8, linetype="dashed", 
+             color = "red", size=0.5) +
+  geom_text(aes(1, 5e-8, label = 5e-8, colour = "red"),
+            size = 3, vjust = -0.5, hjust = 0.5)
+
+prs_threshold = 5e-8; fpr_threshold = 5e-8
+
+for (i in 1:length(files)) {
+  
+  run_summary <- readRDS(files[i])[[as.character(prs_threshold)]]
+  alz_sumstats <- run_summary$gwas_alz_sumstats
+  n_all_null_snps <- alz_sumstats %>% filter(str_detect(SNP, "null")) %>% nrow()
+  n_null_snps_in_prs <- alz_sumstats %>% filter(str_detect(SNP, "null") & P <= prs_threshold) %>% nrow()
+  n_null_snps_not_in_prs <- alz_sumstats %>% filter(str_detect(SNP, "null") & P > prs_threshold) %>% nrow()
+  run_summary[["prs_extremes_fpr"]]$snp_set_number <- rep(x = c(n_all_null_snps, n_all_null_snps, 
+                                                                n_null_snps_in_prs, n_null_snps_in_prs, 
+                                                                n_null_snps_not_in_prs, n_null_snps_not_in_prs))
+  run_summary[["prs_extremes_fpr"]]$fpn <- as.numeric(run_summary[["prs_extremes_fpr"]]$fpr) * run_summary[["prs_extremes_fpr"]]$snp_set_number
+  data_list[[i]] <- run_summary[["prs_extremes_fpr"]]
+  
+}
+
+fpr_dfr <- do.call("rbind", data_list)
+fpr_dfr_prsbonf <- fpr_dfr %>%
+  mutate(overlap = as.numeric(overlap),
+         overlap2 = fct_reorder(paste0(overlap, "%"), overlap),
+         fpr = as.numeric(fpr), 
+         sig_threshold = as.numeric(sig_threshold),
+         snp_set_name = case_when(snp_set_name == "all_null_snps" ~ "All null-SNPs",
+                                  snp_set_name == "null_snps_in_prs" ~ "Null-SNPs used in PRS",
+                                  snp_set_name == "null_snps_not_in_prs" ~ "Null-SNPs not used in PRS"))
+fpr_dfr_prsbonf$fpr[is.na(fpr_dfr_prsbonf$fpr)] <- 0
+
+n_all_null_snps <- fpr_dfr_prsbonf$snp_set_number[fpr_dfr_prsbonf$snp_set_name == "All null-SNPs"][1]
+n_null_snps_in_prs <- fpr_dfr_prsbonf$snp_set_number[fpr_dfr_prsbonf$snp_set_name == "Null-SNPs used in PRS"][1]
+n_null_snps_not_in_prs <- fpr_dfr_prsbonf$snp_set_number[fpr_dfr_prsbonf$snp_set_name == "Null-SNPs not used in PRS"][1]
+
+p4 <- fpr_dfr_prsbonf %>%
+  filter(sig_threshold == fpr_threshold,
+         snp_set_name == "All null-SNPs") %>%
+  group_by(overlap2, snp_set_name) %>%
+  summarise(mean_fpr = mean(fpr),
+            se_fpr = sd(fpr) / sqrt(100),
+            max_fpr = max(fpr),
+            mean_fpn = mean(fpn),
+            se_fpn = sd(fpn) / sqrt(100),
+            max_fpn = max(fpn),
+            .groups = 'drop') %>%
+  ggplot(aes(x = overlap2, y = mean_fpr)) +
+  geom_point(size = 1, colour = "black") + 
+  geom_errorbar(aes(ymin = 0, ymax = mean_fpr + 3.291 * se_fpr), width=.3) +
+  scale_y_continuous(sec.axis = sec_axis(~ . * n_all_null_snps, name="False positives per study", breaks = c(0, 1)),
+                     limits = c(0, 6.2e-6)) +
+  theme_classic() +
+  theme(
+    legend.position="none",
+    strip.text.x = element_text(size = 8),
+    text=element_text(family="Charter"),
+    strip.background = element_rect(
+      color="#EBEBEB", fill="#EBEBEB", size=1.5, linetype="solid"),
+    plot.title = element_text(hjust = 0.5, size = 10),
+    axis.title=element_text(size=10)
+  ) +
+  xlab("Sample overlap") +
+  ylab("") +
+  ggtitle("") +
+  geom_hline(yintercept=5e-8, linetype="dashed", 
+             color = "red", size=0.5) +
+  geom_text(aes(1, 5e-8, label = 5e-8, colour = "red"),
+            size = 3, vjust = -0.5, hjust = 3)
+
+
+figure <- ggarrange(p1, p2, p3, p4,
+                    labels = c("A", "B", "C", "D"),
+                    ncol = 2, nrow = 2, font.label = list(size = 10, family="Charter"), hjust = c(-0.5, -3.5), align = "v")
+
+ggsave(plot = figure, filename = paste0("plots/prs_threshold1_and_5e-8.png"),
+       width = 15, height = 12, units = "cm", dpi = 500, bg = "white")
+
+
+
+##### supplementary table 1: variance of Z-statistics, false positive rate, number of false positives #####
+
+## functions
+apa <- function(x, title = " ") {
+  gt(x) %>%
+    tab_options(
+      table.border.top.color = "white",
+      heading.title.font.size = px(16),
+      column_labels.border.top.width = 3,
+      column_labels.border.top.color = "black",
+      column_labels.border.bottom.width = 3,
+      column_labels.border.bottom.color = "black",
+      table_body.border.bottom.color = "black",
+      table.border.bottom.color = "white",
+      table.width = pct(100),
+      table.background.color = "white"
+    ) %>%
+    cols_align(align="center") %>%
+    tab_style(
+      style = list(
+        cell_borders(
+          sides = c("top", "bottom"),
+          color = "white",
+          weight = px(1)
+        ),
+        cell_text(
+          align="center"
+        ),
+        cell_fill(color = "white", alpha = NULL)
+      ),
+      locations = cells_body(
+        columns = everything(),
+        rows = everything()
+      )
+    ) %>%
+    #title setup
+    tab_header(
+      title = html("<i>", title, "</i>")
+    ) %>%
+    opt_align_table_header(align = "left")
+}
+
+print_w <- function(vector, format = "SE"){
+  vector <- as.numeric(vector)
+  mean <- formatC(mean(vector),format="e",digits=2)
+  I95 <- paste(formatC(quantile(vector,0.025,na.rm=TRUE),format="e",digits=2)," to ",formatC(quantile(vector,0.975,na.rm=TRUE),format="e",digits=2),sep="")
+  SE <- formatC(sd(vector)/sqrt(length((vector))),format="e",digits=2)
+  if(format=="SE"){out <- paste(mean," (",SE,")",sep="")}
+  if(format=="I95"){out <- paste(mean," (",I95,")",sep="")}
+  return(out)
+}
+
+prs_threshold = 0.05
+sim_results <- NULL
+fpr_temp <- NULL
+z_stat <- NULL
+
+## load data
+for (i in 1:length(files)) {
+  
+  sim_results[[i]] <- readRDS(files[i])[[as.character(prs_threshold)]]
+  alz_sumstats <- sim_results[[i]]$gwas_alz_sumstats
+  n_all_null_snps <- alz_sumstats %>% filter(str_detect(SNP, "null")) %>% nrow()
+  n_null_snps_in_prs <- alz_sumstats %>% filter(str_detect(SNP, "null") & P <= prs_threshold) %>% nrow()
+  n_null_snps_not_in_prs <- alz_sumstats %>% filter(str_detect(SNP, "null") & P > prs_threshold) %>% nrow()
+  sim_results[[i]][["prs_extremes_fpr"]]$snp_set_number <- rep(x = c(n_all_null_snps, n_all_null_snps, 
+                                                                  n_null_snps_in_prs, n_null_snps_in_prs, 
+                                                                  n_null_snps_not_in_prs, n_null_snps_not_in_prs))
+  sim_results[[i]][["prs_extremes_fpr"]]$fpn <- as.numeric(sim_results[[i]][["prs_extremes_fpr"]]$fpr) * sim_results[[i]][["prs_extremes_fpr"]]$snp_set_number
+  fpr_temp[[i]] <- sim_results[[i]][["prs_extremes_fpr"]]
+  z_stat[[i]] <- sim_results[[i]][["prs_extremes_z_stat"]]
+}
+
+fpr_dfr <- as.data.frame(do.call("rbind", fpr_temp))
+z_stat_dfr <- as.data.frame(do.call("rbind", z_stat))
+fpr_dfr <- fpr_dfr %>%
+  filter(sig_threshold == 5e-8) %>%
+  select(!sig_threshold)
+
+fpr_summary <- fpr_dfr %>%
+  mutate(overlap = as.numeric(overlap),
+         overlap2 = fct_reorder(paste0(overlap, "%"), overlap),
+         fpr = as.numeric(fpr), 
+         snp_set_name = case_when(snp_set_name == "all_null_snps" ~ "All null-SNPs",
+                                  snp_set_name == "null_snps_in_prs" ~ "Null-SNPs used in PRS",
+                                  snp_set_name == "null_snps_not_in_prs" ~ "Null-SNPs not used in PRS"),
+         fpr = replace_na(fpr, 0)) %>%
+  group_by(overlap2, snp_set_name) %>%
+  summarise(fpr = print_w(fpr),
+            max_fpr = formatC(max(fpr), format="e",digits=2),
+            fpn = print_w(fpn),
+            max_fpn = formatC(max(fpn), format="e",digits=2),
+            .groups = 'drop')
+
+z_stat_summary <- z_stat_dfr %>%
+  mutate(overlap = as.numeric(overlap),
+         overlap2 = fct_reorder(paste0(overlap, "%"), overlap),
+         z_stat_var = as.numeric(z_stat_var), 
+         z_stat_mean = as.numeric(z_stat_mean),
+         snp_set_name = case_when(snp_set_name == "all_null_snps" ~ "All null-SNPs",
+                                  snp_set_name == "null_snps_in_prs" ~ "Null-SNPs used in PRS",
+                                  snp_set_name == "null_snps_not_in_prs" ~ "Null-SNPs not used in PRS")) %>%
+  group_by(overlap2, snp_set_name) %>%
+  summarise(z_var = print_w(z_stat_var),
+            max_z_var = formatC(max(z_stat_var), format="e",digits=2),
+            .groups = 'drop')
+
+m <- merge(z_stat_summary, fpr_summary, by = c("overlap2", "snp_set_name"), sort = F)
+
+gt_tbl <- m %>%
+  select(!overlap2) %>%
+  gt(rowname_col = "snp_set_name") %>%
+  tab_stubhead(label = "Overlap") %>%
+  tab_spanner(
+    label = "Variance of Z-statistics",
+    columns = c(z_var, max_z_var)) %>%
+  tab_spanner(
+    label = "False positive rate per SNP",
+    columns = c(fpr, max_fpr)) %>%
+  tab_spanner(
+    label = "False positives per study",
+    columns = c(fpn, max_fpn)) %>%
+  tab_row_group(
+    label = "0%",
+    rows = 1:3
+  ) %>%
+  tab_row_group(
+    label = "50%",
+    rows = 4:6
+  ) %>%
+  tab_row_group(
+    label = "100%",
+    rows = 7:9
+  )  %>%
+  cols_label(
+    z_var = "mean (s.e.m.)",
+    max_z_var = "max",
+    fpr = "mean (s.e.m.)",
+    max_fpr = "max",
+    fpn = "mean (s.e.m.)",
+    max_fpn = "max"
+  ) %>%
+  tab_options(table.font.names = "charter") %>%
+  tab_options(
+    table.border.top.color = "white",
+    heading.title.font.size = px(16),
+    column_labels.border.top.width = 3,
+    column_labels.border.top.color = "black",
+    column_labels.border.bottom.width = 3,
+    column_labels.border.bottom.color = "black",
+    table_body.border.bottom.color = "black",
+    table.border.bottom.color = "white",
+    table.width = pct(100),
+    table.background.color = "white"
+  ) %>%
+  cols_align(align="center") %>%
+  tab_style(
+    style = list(
+      cell_borders(
+        sides = c("top", "bottom"),
+        color = "white",
+        weight = px(1)
+      ),
+      cell_text(
+        align="center"
+      ),
+      cell_fill(color = "white", alpha = NULL)
+    ),
+    locations = cells_body(
+      columns = everything(),
+      rows = everything()
+    )
+  ) %>%
+  opt_align_table_header(align = "left") %>%
+gtsave(filename = "plots/table1.html", inline_css = TRUE)
+
+
+##### supplementary table 2: model checks #####
+
+gwas_alz_summary_lst <- NULL
+for (i in 1:length(sim_results)) {
+  gwas_alz_summary_lst[[i]] <- sim_results[[i]][["gwas_alz_summary"]]
+}
+gwas_alz_summary <- do.call("rbind", gwas_alz_summary_lst)
+
+gwas_alz_summary <- gwas_alz_summary %>%
+  summarise(prs_r2liab = print_w(prs_r2liab),
+            ldsc_intercept = print_w(ldsc_intercept),
+            ldsc_h2l = print_w(ldsc_h2l),
+            lambda = print_w(lambda))
+
+gt_tbl <- gwas_alz_summary %>%
+  gt() %>%
+  cols_label(
+    prs_r2liab = expression("PRS "*italic("R")["liability"]^2)) %>%
+  gtsave(filename = "plots/table2.html", inline_css = TRUE)
+
+apa(gwas_alz_summary) %>%
+  cols_label(prs_r2liab = html("PRS <i>R</i><sup>2</sup><sub>liability</sub>"),
+             ldsc_intercept = "LDSC intercept",
+             ldsc_h2l = html("<i>h</i><sup>2</sup><sub>liability</sub>")
+  ) %>%
+  gtsave(filename = "plots/table2.html", inline_css = TRUE)
+

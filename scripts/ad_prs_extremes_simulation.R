@@ -301,7 +301,7 @@ for (prs_threshold in prs_thresholds) {
   ncontrol <- sum(disc_fam$V6 == 1)
   neff <- 4 / ((1 / ncase) + (1 / ncontrol))
   ldsc_intercept <- var(gwas_alz_sumstats$STAT[(nsnp_causal+1):nsnp])
-  ldsc_h2o <- nsnp * (mean(gwas_alz_sumstats$STAT^2) - 1) / neff# eu. suppl. table 57 "LD Score regression distinguishes confounding from polygenicity in genome-wide association studies"
+  ldsc_h2o <- nsnp * (mean(gwas_alz_sumstats$STAT^2) - 1) / neff # eu. suppl. table 57 "LD Score regression distinguishes confounding from polygenicity in genome-wide association studies"
   ldsc_h2l <- h2o_to_h2l(K=K,P=0.5,h2o=ldsc_h2o) 
   lambda <- median(gwas_alz_sumstats$STAT^2) / qchisq(0.5, 1)
   

@@ -183,7 +183,7 @@ p4 <- z_var_dfr %>%
     axis.title=element_text(size=10)
   ) +
   xlab("") +
-  ylab("Variance of Z-statistics") +
+  ylab("Variance of test statistics") +
   ggtitle("All null-SNPs") +
   geom_hline(yintercept=1, linetype="dashed", 
              color = "red", size=0.5)
@@ -398,7 +398,7 @@ ggsave(plot = figure, filename = paste0("plots/prs_threshold", prs_threshold, "_
 
 ##### suppl figure 2: prs_threshold = 1 or 5e-8 #####
 
-## variance of Z-statistics 
+## variance of test statistics 
 prs_threshold <- 1
 
 for (i in 1:length(files)) {
@@ -434,7 +434,7 @@ p1 <- z_var_dfr_prs1 %>%
     axis.title=element_text(size=10)
   ) +
   xlab("") +
-  ylab("Variance of Z-statistics") +
+  ylab("Variance of test statistics") +
   ggtitle("P-value threshold: 1") +
   geom_hline(yintercept=1, linetype="dashed", 
              color = "red", size=0.5)
@@ -622,7 +622,7 @@ ggsave(plot = figure, filename = paste0("plots/prs_threshold1_and_5e-8.png"),
 
 
 
-##### supplementary table 1: variance of Z-statistics, false positive rate, number of false positives #####
+##### supplementary tables: set-up #####
 
 ## functions
 apa <- function(x, title = " ") {
@@ -679,7 +679,8 @@ sim_results <- NULL
 fpr_temp <- NULL
 z_stat <- NULL
 
-## load data
+#### supplementary tables 1: variance of test statistics, false positive rate, number of false positives ####
+
 for (i in 1:length(files)) {
   
   sim_results[[i]] <- readRDS(files[i])[[as.character(prs_threshold)]]
@@ -736,7 +737,7 @@ gt_tbl <- m %>%
   gt(rowname_col = "snp_set_name") %>%
   tab_stubhead(label = "Overlap") %>%
   tab_spanner(
-    label = "Variance of Z-statistics",
+    label = "Variance of test statistics",
     columns = c(z_var, max_z_var)) %>%
   tab_spanner(
     label = "False positive rate per SNP",
@@ -802,7 +803,11 @@ gtsave(filename = "tables/table1.html", inline_css = TRUE)
 ##### supplementary table 2: model checks #####
 
 gwas_alz_summary_lst <- NULL
-for (i in 1:length(sim_results)) {
+sim_results <- NULL
+prs_threshold = 0.05
+
+for (i in 1:length(files)) {
+  sim_results[[i]] <- readRDS(files[i])[[as.character(prs_threshold)]]
   gwas_alz_summary_lst[[i]] <- sim_results[[i]][["gwas_alz_summary"]]
 }
 gwas_alz_summary <- do.call("rbind", gwas_alz_summary_lst)
@@ -812,11 +817,48 @@ gwas_alz_summary <- gwas_alz_summary %>%
             ldsc_intercept = print_w(ldsc_intercept),
             ldsc_h2l = print_w(ldsc_h2l),
             lambda = print_w(lambda))
+gwas_alz_summary[2,] <- c("5.00e-02", "1.00e+00", "1.00e-01", "1.00e+00") # theory
+gwas_alz_summary$sim_theory <- c("Simulation", "Theory")
+gwas_alz_summary <- gwas_alz_summary[,c(5,1,2,3,4)]
 
-apa(gwas_alz_summary) %>%
-  cols_label(prs_r2liab = html("PRS <i>R</i><sup>2</sup><sub>liability</sub>"),
+gwas_alz_summary %>%
+  gt(rowname_col = "sim_theory") %>%
+  cols_label(sim_theory = "Simulation / Theory",
+             prs_r2liab = html("PRS <i>R</i><sup>2</sup><sub>liability</sub>"),
              ldsc_intercept = "LDSC intercept",
              ldsc_h2l = html("<i>h</i><sup>2</sup><sub>liability</sub>")
   ) %>%
+  tab_options(table.font.names = "charter") %>%
+  tab_options(
+    table.border.top.color = "white",
+    heading.title.font.size = px(16),
+    column_labels.border.top.width = 3,
+    column_labels.border.top.color = "black",
+    column_labels.border.bottom.width = 3,
+    column_labels.border.bottom.color = "black",
+    table_body.border.bottom.color = "black",
+    table.border.bottom.color = "white",
+    table.width = pct(100),
+    table.background.color = "white"
+  ) %>%
+  cols_align(align="center") %>%
+  tab_style(
+    style = list(
+      cell_borders(
+        sides = c("top", "bottom"),
+        color = "white",
+        weight = px(1)
+      ),
+      cell_text(
+        align="center"
+      ),
+      cell_fill(color = "white", alpha = NULL)
+    ),
+    locations = cells_body(
+      columns = everything(),
+      rows = everything()
+    )
+  ) %>%
+  opt_align_table_header(align = "left") %>%
   gtsave(filename = "tables/table2.html", inline_css = TRUE)
 

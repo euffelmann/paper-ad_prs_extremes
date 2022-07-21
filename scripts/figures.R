@@ -77,9 +77,9 @@ p1 <- fpr_dfr %>%
     plot.title = element_text(hjust = 0.5, size = 10),
     axis.title=element_text(size=10)
   ) +
-  xlab("Sample overlap") +
+  xlab("") +
   ylab("False positive rate per SNP ") +
-  ggtitle("") +
+  ggtitle("All null-SNPs") +
   geom_hline(yintercept=5e-8, linetype="dashed", 
              color = "red", size=0.5) +
   geom_text(aes(1, 5e-8, label = 5e-8, colour = "red"),
@@ -110,9 +110,9 @@ p2 <- fpr_dfr %>%
     plot.title = element_text(hjust = 0.5, size = 10),
     axis.title=element_text(size=10)
   ) +
-  xlab("Sample overlap") +
+  xlab("") +
   ylab("") +
-  ggtitle("") +
+  ggtitle("Null-SNPs used in PRS") +
   geom_hline(yintercept=5e-8, linetype="dashed", 
              color = "red", size=0.5)
 
@@ -142,9 +142,9 @@ p3 <- fpr_dfr %>%
     plot.title = element_text(hjust = 0.5, size = 10),
     axis.title=element_text(size=10)
   ) +
-  xlab("Sample overlap") +
+  xlab("") +
   ylab("") +
-  ggtitle("") +
+  ggtitle("Null-SNPs not used in PRS") +
   geom_hline(yintercept=5e-8, linetype="dashed", 
              color = "red", size=0.5)
 
@@ -182,9 +182,9 @@ p4 <- z_var_dfr %>%
     plot.title = element_text(hjust = 0.5, size = 10),
     axis.title=element_text(size=10)
   ) +
-  xlab("") +
+  xlab("Sample overlap") +
   ylab("Variance of test statistics") +
-  ggtitle("All null-SNPs") +
+  ggtitle("") +
   geom_hline(yintercept=1, linetype="dashed", 
              color = "red", size=0.5)
 
@@ -211,9 +211,9 @@ p5 <- z_var_dfr %>%
     plot.title = element_text(hjust = 0.5, size = 10),
     axis.title=element_text(size=10)
   ) +
-  xlab("") +
+  xlab("Sample overlap") +
   ylab("") +
-  ggtitle("Null-SNPs used in PRS") +
+  ggtitle("") +
   geom_hline(yintercept=1, linetype="dashed", 
              color = "red", size=0.5)
 
@@ -240,14 +240,14 @@ p6 <- z_var_dfr %>%
     plot.title = element_text(hjust = 0.5, size = 10),
     axis.title=element_text(size=10)
   ) +
-  xlab("") +
+  xlab("Sample overlap") +
   ylab("") +
-  ggtitle("Null-SNPs not used in PRS") +
+  ggtitle("") +
   geom_hline(yintercept=1, linetype="dashed", 
              color = "red", size=0.5)
 
 
-figure <- ggarrange(p4, p5, p6, p1, p2, p3, 
+figure <- ggarrange(p1, p2, p3, p4, p5, p6,
                     labels = c("A", "B", "C", "D", "E", "F"),
                     ncol = 3, nrow = 2, font.label = list(size = 10, family="Charter"),
                     align = "v")
@@ -433,9 +433,9 @@ p1 <- z_var_dfr_prs1 %>%
     plot.title = element_text(hjust = 0.5, size = 10),
     axis.title=element_text(size=10)
   ) +
-  xlab("") +
+  xlab("Sample overlap") +
   ylab("Variance of test statistics") +
-  ggtitle("P-value threshold: 1") +
+  ggtitle("") +
   geom_hline(yintercept=1, linetype="dashed", 
              color = "red", size=0.5)
 
@@ -474,9 +474,9 @@ p2 <- z_var_dfr_prsbonf %>%
     plot.title = element_text(hjust = 0.5, size = 10),
     axis.title=element_text(size=10)
   ) +
-  xlab("") +
+  xlab("Sample overlap") +
   ylab("") +
-  ggtitle("P-value threshold: 5e-8") +
+  ggtitle("") +
   geom_hline(yintercept=1, linetype="dashed", 
              color = "red", size=0.5)
 
@@ -538,9 +538,9 @@ p3 <- fpr_dfr_prs1 %>%
     plot.title = element_text(hjust = 0.5, size = 10),
     axis.title=element_text(size=10)
   ) +
-  xlab("Sample overlap") +
+  xlab("") +
   ylab("False positive rate per SNP ") +
-  ggtitle("") +
+  ggtitle("P-value threshold: 1") +
   geom_hline(yintercept=5e-8, linetype="dashed", 
              color = "red", size=0.5) +
   geom_text(aes(1, 5e-8, label = 5e-8, colour = "red"),
@@ -604,16 +604,16 @@ p4 <- fpr_dfr_prsbonf %>%
     plot.title = element_text(hjust = 0.5, size = 10),
     axis.title=element_text(size=10)
   ) +
-  xlab("Sample overlap") +
+  xlab("") +
   ylab("") +
-  ggtitle("") +
+  ggtitle("P-value threshold: 5e-8") +
   geom_hline(yintercept=5e-8, linetype="dashed", 
              color = "red", size=0.5) +
   geom_text(aes(1, 5e-8, label = 5e-8, colour = "red"),
             size = 3, vjust = -0.5, hjust = 3)
 
 
-figure <- ggarrange(p1, p2, p3, p4,
+figure <- ggarrange(p3, p4, p1, p2,
                     labels = c("A", "B", "C", "D"),
                     ncol = 2, nrow = 2, font.label = list(size = 10, family="Charter"), hjust = c(-0.5, -3.5), align = "v")
 
@@ -623,46 +623,6 @@ ggsave(plot = figure, filename = paste0("plots/prs_threshold1_and_5e-8.png"),
 
 
 ##### supplementary tables: set-up #####
-
-## functions
-apa <- function(x, title = " ") {
-  gt(x) %>%
-    tab_options(
-      table.border.top.color = "white",
-      heading.title.font.size = px(16),
-      column_labels.border.top.width = 3,
-      column_labels.border.top.color = "black",
-      column_labels.border.bottom.width = 3,
-      column_labels.border.bottom.color = "black",
-      table_body.border.bottom.color = "black",
-      table.border.bottom.color = "white",
-      table.width = pct(100),
-      table.background.color = "white"
-    ) %>%
-    cols_align(align="center") %>%
-    tab_style(
-      style = list(
-        cell_borders(
-          sides = c("top", "bottom"),
-          color = "white",
-          weight = px(1)
-        ),
-        cell_text(
-          align="center"
-        ),
-        cell_fill(color = "white", alpha = NULL)
-      ),
-      locations = cells_body(
-        columns = everything(),
-        rows = everything()
-      )
-    ) %>%
-    #title setup
-    tab_header(
-      title = html("<i>", title, "</i>")
-    ) %>%
-    opt_align_table_header(align = "left")
-}
 
 print_w <- function(vector, format = "SE"){
   vector <- as.numeric(vector)
@@ -799,66 +759,4 @@ gt_tbl <- m %>%
   opt_align_table_header(align = "left") %>%
 gtsave(filename = "tables/table1.html", inline_css = TRUE)
 
-
-##### supplementary table 2: model checks #####
-
-gwas_alz_summary_lst <- NULL
-sim_results <- NULL
-prs_threshold = 0.05
-
-for (i in 1:length(files)) {
-  sim_results[[i]] <- readRDS(files[i])[[as.character(prs_threshold)]]
-  gwas_alz_summary_lst[[i]] <- sim_results[[i]][["gwas_alz_summary"]]
-}
-gwas_alz_summary <- do.call("rbind", gwas_alz_summary_lst)
-
-gwas_alz_summary <- gwas_alz_summary %>%
-  summarise(prs_r2liab = print_w(prs_r2liab),
-            ldsc_intercept = print_w(ldsc_intercept),
-            ldsc_h2l = print_w(ldsc_h2l),
-            lambda = print_w(lambda))
-gwas_alz_summary[2,] <- c("5.00e-02", "1.00e+00", "1.00e-01", "1.00e+00") # theory
-gwas_alz_summary$sim_theory <- c("Simulation", "Theory")
-gwas_alz_summary <- gwas_alz_summary[,c(5,1,2,3,4)]
-
-gwas_alz_summary %>%
-  gt(rowname_col = "sim_theory") %>%
-  cols_label(sim_theory = "Simulation / Theory",
-             prs_r2liab = html("PRS <i>R</i><sup>2</sup><sub>liability</sub>"),
-             ldsc_intercept = "LDSC intercept",
-             ldsc_h2l = html("<i>h</i><sup>2</sup><sub>liability</sub>")
-  ) %>%
-  tab_options(table.font.names = "charter") %>%
-  tab_options(
-    table.border.top.color = "white",
-    heading.title.font.size = px(16),
-    column_labels.border.top.width = 3,
-    column_labels.border.top.color = "black",
-    column_labels.border.bottom.width = 3,
-    column_labels.border.bottom.color = "black",
-    table_body.border.bottom.color = "black",
-    table.border.bottom.color = "white",
-    table.width = pct(100),
-    table.background.color = "white"
-  ) %>%
-  cols_align(align="center") %>%
-  tab_style(
-    style = list(
-      cell_borders(
-        sides = c("top", "bottom"),
-        color = "white",
-        weight = px(1)
-      ),
-      cell_text(
-        align="center"
-      ),
-      cell_fill(color = "white", alpha = NULL)
-    ),
-    locations = cells_body(
-      columns = everything(),
-      rows = everything()
-    )
-  ) %>%
-  opt_align_table_header(align = "left") %>%
-  gtsave(filename = "tables/table2.html", inline_css = TRUE)
 

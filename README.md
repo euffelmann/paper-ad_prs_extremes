@@ -1,5 +1,5 @@
 
-Scripts, figures and data for "Genome-wide association study of polygenic risk score-defined phenotype suffers from inflated test-statistics" (soon to be submitted, link will follow asap)
+Scripts, figures and data for "Genome-wide association studies of polygenic risk score-derived phenotypes may lead to inflated false positive rates" (soon to be submitted, link will follow asap)
 
 **scripts:**
 

@@ -423,16 +423,16 @@ for (prs_threshold in prs_thresholds) {
   prs_extremes_sumstats0 <- merge(x = temp_prs_extremes_sumstats0, y = temp_prs_extremes_sumstats0_maf, by = ("SNP"))
   
   
-  temp_prs_extremes_sumstats50 <- fread("gwas_prs_extremes0_sumstats.assoc.logistic")
+  temp_prs_extremes_sumstats50 <- fread("gwas_prs_extremes50_sumstats.assoc.logistic")
   temp_prs_extremes_sumstats50$LOG_OR <- log(temp_prs_extremes_sumstats50$OR)
   temp_prs_extremes_sumstats50$LOG_OR_SE <- abs(log(temp_prs_extremes_sumstats50$OR)/qnorm(temp_prs_extremes_sumstats50$P/2))
-  temp_prs_extremes_sumstats50_maf <- fread("gwas_prs_extremes0_sumstats.frq")[, c("SNP", "MAF")]
+  temp_prs_extremes_sumstats50_maf <- fread("gwas_prs_extremes50_sumstats.frq")[, c("SNP", "MAF")]
   prs_extremes_sumstats50 <- merge(x = temp_prs_extremes_sumstats50, y = temp_prs_extremes_sumstats50_maf, by = ("SNP"))
   
-  temp_prs_extremes_sumstats100 <- fread("gwas_prs_extremes0_sumstats.assoc.logistic")
+  temp_prs_extremes_sumstats100 <- fread("gwas_prs_extremes100_sumstats.assoc.logistic")
   temp_prs_extremes_sumstats100$LOG_OR <- log(temp_prs_extremes_sumstats100$OR)
   temp_prs_extremes_sumstats100$LOG_OR_SE <- abs(log(temp_prs_extremes_sumstats100$OR)/qnorm(temp_prs_extremes_sumstats100$P/2))
-  temp_prs_extremes_sumstats100_maf <- fread("gwas_prs_extremes0_sumstats.frq")[, c("SNP", "MAF")]
+  temp_prs_extremes_sumstats100_maf <- fread("gwas_prs_extremes100_sumstats.frq")[, c("SNP", "MAF")]
   prs_extremes_sumstats100 <- merge(x = temp_prs_extremes_sumstats100, y = temp_prs_extremes_sumstats100_maf, by = ("SNP"))
   
   rm(list=ls()[grep("temp",ls())])
